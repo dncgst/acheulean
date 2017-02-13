@@ -1,0 +1,73 @@
+---
+title: "Untitled"
+author: "Domenico Giusti"
+date: "February 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+## Getting data
+
+```{r}
+install.packages("archdata")
+library(archdata)
+data("Acheulean")
+View(Acheulean)
+str(Acheulean)
+```
+
+## SpatialPointDataframe
+
+```{r}
+install.packages("sp")
+library(sp)
+coo <- Acheulean[,c(2,1)]
+coo <- Acheulean[c("Long","Lat")]
+spA <- SpatialPointsDataFrame(coo, Acheulean)
+str(spA)
+coordinates(spA)
+bbox(spA)
+proj4string(spA) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs +towgs84=0,0,0"
+```
+
+## Map
+
+```{r}
+library(rworldmap)
+library(rworldxtra) # to get resolution="high"
+w <- getMap(resolution="low")
+plot(w)
+class(w)
+proj4string(w)
+library(raster)
+e <- extent(bbox(spA))
+map <- crop(w, e)
+plot(w)
+plot(map, col="light blue", add=TRUE)
+plot(spA, col="red", add=TRUE)
+plot(map); plot(spA, col="red", add=TRUE)
+```
+
+```{r}
+library(ggplot2)
+library(ggmap)
+
+map@data$id = rownames(map@data)
+map.points = fortify(map, region="id")
+map.df = join(map.points, map@data, by="id")
+
+ggplot(map.df, aes(x=long, y=lat, group=group)) + geom_polygon(colour="black", fill="white") + coord_equal()
+
+kenya <- get_map(location="kenya", source="osm")
+ggmap(kenya)
+```
+
+## Spatial autocorrelation
+
+```{r}
+```
